@@ -1,0 +1,6 @@
+{"level":"info","message":"✅ Database connection established successfully.","service":"inventory-api","timestamp":"2026-06-22 23:21:03"}
+{"level":"info","message":"✅ Database models synchronized.","service":"inventory-api","timestamp":"2026-06-22 23:21:03"}
+{"level":"info","message":"✅ Server running on port 3000","service":"inventory-api","timestamp":"2026-06-22 23:21:03"}
+{"level":"info","message":"📝 Environment: development","service":"inventory-api","timestamp":"2026-06-22 23:21:03"}
+{"level":"info","message":"🌐 Health check: http://localhost:3000/health","service":"inventory-api","timestamp":"2026-06-22 23:21:03"}
+{"level":"info","message":"📚 API Base URL: http://localhost:3000/api","service":"inventory-api","timestamp":"2026-06-22 23:21:03"}
