@@ -5,7 +5,6 @@ import {
   DataType,
   HasMany,
   CreatedAt,
-  UpdatedAt,
   BeforeCreate,
   BeforeUpdate,
   Default,
@@ -22,7 +21,7 @@ export enum UserRole {
 @Table({
   tableName: 'users',
   timestamps: true,
-  updatedAt: false, // Only use created_at as per schema
+  updatedAt: false,
 })
 export class User extends Model {
   @Column({
@@ -65,10 +64,17 @@ export class User extends Model {
 
   @Column({
     type: DataType.STRING(255),
-    allowNull: false,
+    allowNull: true,
     field: 'password_hash',
   })
   password_hash!: string;
+
+  // ✅ ADD THIS: Virtual column for password
+  @Column({
+    type: DataType.VIRTUAL,
+    allowNull: true,
+  })
+  password?: string;
 
   @Default(UserRole.STAFF)
   @Column({
@@ -108,9 +114,6 @@ export class User extends Model {
   })
   created_at!: Date;
 
-  // Virtual field for password (not stored in database)
-  password?: string;
-
   // Instance methods
   async comparePassword(candidatePassword: string): Promise<boolean> {
     return bcrypt.compare(candidatePassword, this.password_hash);
@@ -125,17 +128,18 @@ export class User extends Model {
   @BeforeCreate
   @BeforeUpdate
   static async hashPassword(instance: User) {
+    console.log('🔍 Hook triggered, password:', instance.password ? 'YES' : 'NO');
+    
     if (instance.password) {
       const salt = await bcrypt.genSalt(10);
       instance.password_hash = await bcrypt.hash(instance.password, salt);
+      console.log('✅ Password hashed:', instance.password_hash.substring(0, 20) + '...');
     }
     
-    // Normalize email
     if (instance.email) {
       instance.email = instance.email.toLowerCase().trim();
     }
     
-    // Trim username
     if (instance.username) {
       instance.username = instance.username.trim();
     }
@@ -147,5 +151,5 @@ export class User extends Model {
     return userWithoutPassword;
   }
 }
-// Keep all existing code above, just add this at the end:
+
 export default User;

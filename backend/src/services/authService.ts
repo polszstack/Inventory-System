@@ -1,15 +1,14 @@
 import { User } from '../models/User';
 import { AuthMiddleware } from '../middleware/auth';
 import { LoginDTO, RegisterDTO, AuthTokens } from '../types';
+import bcrypt from 'bcrypt';
 
 export class AuthService {
   static async login(data: LoginDTO): Promise<{ user: Partial<User>; tokens: AuthTokens }> {
     const { username, password } = data;
 
-    // Find user by username or email
     const user = await User.findOne({
       where: {
-        // Sequelize OR condition
         ...(username.includes('@') 
           ? { email: username.toLowerCase() } 
           : { username: username }),
@@ -20,21 +19,25 @@ export class AuthService {
       throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
     }
 
-    // Check password
+    if (!user.password_hash) {
+      await user.destroy();
+      throw Object.assign(
+        new Error('Account was corrupted. Please register again.'), 
+        { statusCode: 400 }
+      );
+    }
+
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
     }
 
-    // Check if user is active
     if (!user.is_active) {
       throw Object.assign(new Error('Account is deactivated'), { statusCode: 403 });
     }
 
-    // Update last login
     await user.updateLastLogin();
 
-    // Generate tokens
     const tokens = AuthMiddleware.generateTokens(user.id, user.role);
 
     return {
@@ -47,26 +50,35 @@ export class AuthService {
     // Check if user already exists
     const existingUser = await User.findOne({
       where: {
-        // Check both email and username
         ...(data.email ? { email: data.email.toLowerCase() } : {}),
         ...(data.username ? { username: data.username } : {}),
       },
     });
 
     if (existingUser) {
-      const field = existingUser.email === data.email?.toLowerCase() ? 'Email' : 'Username';
-      throw Object.assign(new Error(`${field} already exists`), { statusCode: 409 });
+      // If existing user has NULL password, delete it
+      if (!existingUser.password_hash) {
+        await existingUser.destroy();
+      } else {
+        const field = existingUser.email === data.email?.toLowerCase() ? 'Email' : 'Username';
+        throw Object.assign(new Error(`${field} already exists`), { statusCode: 409 });
+      }
     }
 
-    // Create user
+    // ✅ Hash password manually before creating user
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(data.password, salt);
+
+    // Create user with pre-hashed password
     const user = await User.create({
       username: data.username,
       email: data.email,
-      password: data.password, // Will be hashed by model hook
+      password_hash: hashedPassword, // Set hash directly
       role: data.role || 'staff',
-    });
+    } as any);
 
-    // Generate tokens
+    console.log('✅ User created with hash:', hashedPassword.substring(0, 20) + '...');
+
     const tokens = AuthMiddleware.generateTokens(user.id, user.role);
 
     return {
