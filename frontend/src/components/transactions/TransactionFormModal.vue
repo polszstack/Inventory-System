@@ -90,10 +90,10 @@
           <!-- Unit Price -->
           <div>
             <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-              Unit Price
+              Unit Price $
             </label>
             <div class="relative">
-              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-medium"></span>
               <input
                 v-model.number="form.unit_price"
                 type="number"
