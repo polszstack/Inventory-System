@@ -1,0 +1,11 @@
+{
+  "build": {
+    "builder": "nixpacks",
+    "watch": ["backend/**"],
+    "buildCommand": "cd backend && npm install && npm run build"
+  },
+  "deploy": {
+    "startCommand": "cd backend && npm start",
+    "healthcheckPath": "/health"
+  }
+}
