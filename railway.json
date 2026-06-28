@@ -2,7 +2,11 @@
   "build": {
     "builder": "nixpacks",
     "watch": ["backend/**"],
-    "buildCommand": "cd backend && npm install && npm run build"
+    "buildCommand": "cd backend && npm install && npm run build",
+    "nixpacksConfig": {
+      "providers": ["node"],
+      "installCommand": "cd backend && npm install"
+    }
   },
   "deploy": {
     "startCommand": "cd backend && npm start",
