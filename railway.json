@@ -1,0 +1,12 @@
+{
+  "build": {
+    "builder": "nixpacks",
+    "buildCommand": "npm install && npm run build",
+    "nixpacksPlan": {
+      "providers": ["node"]
+    }
+  },
+  "deploy": {
+    "startCommand": "npm start"
+  }
+}
